@@ -1,0 +1,35 @@
+// samples/expected_model.swift.sample
+//
+// This file is for REFERENCE ONLY — it shows the expected shape
+// of the data model.  It is restored from main before every test
+// run so participants cannot alter it.
+//
+// Participants should implement their own version in logic.swift
+// (or a ViewModel file) that matches this structure.
+
+import Foundation
+
+// ── API Response Model ────────────────────────────────────────
+struct ExchangeRateResponse: Codable {
+    let result: String          // "success"
+    let baseCode: String        // e.g. "USD"
+    let conversionRates: [String: Double]
+
+    enum CodingKeys: String, CodingKey {
+        case result
+        case baseCode          = "base_code"
+        case conversionRates   = "conversion_rates"
+    }
+}
+
+// ── ViewModel (ObservableObject pattern) ─────────────────────
+// @MainActor
+// final class CurrencyViewModel: ObservableObject {
+//     @Published var convertedAmount: Double = 0.0
+//     @Published var isLoading: Bool = false
+//     @Published var errorMessage: String? = nil
+//     private var rates: [String: Double] = [:]
+//
+//     func fetchExchangeRates(base: String) async { … }
+//     func convert(amount: Double, to target: String) { … }
+// }

@@ -7,18 +7,31 @@
 
 import Foundation
 
-// Create Data Model
+struct ExchangeRateResponse: Codable {
+    let result: String
+    let base_code: String
+    let conversion_rates: [String: Double]
+}
 
-// Create API fetch function
-func fetchExchangeRates() async {
-    do {
-        // Initialize URL
+final class CurrencyViewModel: ObservableObject {
+    @Published var amount = ""
+    @Published var fromCurrency = "USD"
+    @Published var toCurrency = "EUR"
+    @Published var convertedAmount: Double = 0.0
+    @Published var isLoading = false
+    @Published var errorMessage: String? = nil
 
-        // Make the API call and decode response
+    var rates: [String: Double] = [:]
 
-        // Decode data into your model and update UI
+    func fetchExchangeRates(base: String = "USD") async {
+        // TODO: Initialize and perform the API request for live exchange rates.
+        // TODO: Decode the response into ExchangeRateResponse and update `rates`.
+        // TODO: Update `isLoading`, `errorMessage`, and recalculate converted amount.
+    }
 
-    } catch {
-        print("API_ERROR: \(error.localizedDescription)")
+    func convertCurrentAmount() {
+        // TODO: Convert the current `amount` from `fromCurrency` to `toCurrency`
+        // using the rates loaded from the API.
+        convertedAmount = 0.0
     }
 }
