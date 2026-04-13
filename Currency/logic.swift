@@ -22,6 +22,7 @@ final class CurrencyViewModel: ObservableObject {
     @Published var errorMessage: String? = nil
 
     var rates: [String: Double] = [:]
+    
 
     func fetchExchangeRates(base: String = "USD") async {
         let sourceCurrency = base.isEmpty ? "USD" : base.uppercased()
