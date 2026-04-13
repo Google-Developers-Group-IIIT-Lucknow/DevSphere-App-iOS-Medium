@@ -26,7 +26,7 @@ final class CurrencyViewModel: ObservableObject {
     func fetchExchangeRates(base: String = "USD") async {
         let sourceCurrency = base.isEmpty ? "USD" : base.uppercased()
         guard let url = URL(string: "https://open.er-api.com/v6/latest/\(sourceCurrency)") else {
-            errorMessage = "Invalid URL for currency rates."
+            errorMessage = "Invalid URL for currency rates. "
             return
         }
 
