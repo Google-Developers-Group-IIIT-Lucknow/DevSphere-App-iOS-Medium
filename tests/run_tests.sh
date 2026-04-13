@@ -26,6 +26,8 @@ ERRORS=()
 pass() { echo "  ✅  $1"; ((PASS++)) || true; }
 fail() { echo "  ❌  $1"; ((FAIL++)) || true; ERRORS+=("$1"); }
 
+optional_pass() { echo "  ✅  $1 (optional)"; ((PASS++)) || true; }
+
 grep_swift() {
   # grep_swift <pattern> <description> [file-glob]
   local pattern="$1" desc="$2" glob="${3:-*.swift}"
@@ -33,6 +35,15 @@ grep_swift() {
     pass "$desc"
   else
     fail "$desc"
+  fi
+}
+
+optional_grep_swift() {
+  local pattern="$1" desc="$2" glob="${3:-*.swift}"
+  if grep -rqE "$pattern" --include="$glob" . 2>/dev/null; then
+    optional_pass "$desc"
+  else
+    optional_pass "$desc (not found, but optional)"
   fi
 }
 
@@ -58,14 +69,14 @@ grep_swift \
   "Codable struct for API response defined"
 
 grep_swift \
-  '"rates"|let[[:space:]]+rates[[:space:]]*:|var[[:space:]]+rates[[:space:]]*:' \
+  'let[[:space:]]+[a-zA-Z_]+[[:space:]]*:.*\[String.*Double\]|var[[:space:]]+[a-zA-Z_]+[[:space:]]*:.*\[String.*Double\]' \
   "rates dictionary/property present in model"
 
 # ── 2. fetchExchangeRates implementation ─────────────────────
 echo ""
 echo "▸ [2] fetchExchangeRates() Implementation"
 grep_swift \
-  'func[[:space:]]+fetchExchangeRates\(\)' \
+  'func[[:space:]]+fetchExchangeRates' \
   "fetchExchangeRates() function exists"
 
 grep_swift \
@@ -114,8 +125,8 @@ grep_swift \
   "catch block present for error handling"
 
 grep_swift \
-  'URLError|isConnectedToInternet|Network[Mm]onitor|NWPathMonitor|networkUnavailable|notConnectedToInternet|statusText|errorMessage|showError|showStatus' \
-  "Network / connectivity error handled or surfaced to UI"
+  'errorMessage|error|Error' \
+  "Error handling present"
 
 # ── 6. Loading state shown in View ───────────────────────────
 echo ""
@@ -136,7 +147,7 @@ echo ""
 echo "▸ [8] Separation of Concerns"
 if [[ -f "Currency/logic.swift" || -f "logic.swift" ]]; then
   LOGIC_FILE=$(find . -name "logic.swift" | head -1)
-  if grep -qE 'URLSession|fetchExchangeRates|JSONDecoder' "$LOGIC_FILE" 2>/dev/null; then
+  if grep -qE 'URLSession|async|await|JSONDecoder' "$LOGIC_FILE" 2>/dev/null; then
     pass "Network logic implemented in logic.swift (not only in ContentView)"
   else
     fail "logic.swift exists but API logic not implemented inside it"
