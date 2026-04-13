@@ -16,9 +16,9 @@ func testExchangeRateResponseDecoding() {
     do {
         let response = try decoder.decode(ExchangeRateResponse.self, from: json)
         assertEqual(response.result, "success", "ExchangeRateResponse decodes result")
-        assertEqual(response.baseCode, "USD", "ExchangeRateResponse decodes base code")
-        assertEqual(response.conversionRates["EUR"], 0.92, "ExchangeRateResponse decodes EUR rate")
-        assertEqual(response.conversionRates["JPY"], 134.21, "ExchangeRateResponse decodes JPY rate")
+        assertEqual(response.base_code, "USD", "ExchangeRateResponse decodes base code")
+        assertEqual(response.conversion_rates["EUR"], 0.92, "ExchangeRateResponse decodes EUR rate")
+        assertEqual(response.conversion_rates["JPY"], 134.21, "ExchangeRateResponse decodes JPY rate")
     } catch {
         fail("ExchangeRateResponse decoding failed: \(error)")
     }
@@ -59,10 +59,10 @@ func testLiveExchangeRateApiResponse() {
 
     do {
         let decoded = try JSONDecoder().decode(ExchangeRateResponse.self, from: data)
-        assertEqual(decoded.baseCode, "USD", "Live API baseCode is USD")
+        assertEqual(decoded.base_code, "USD", "Live API baseCode is USD")
         assertTrue(decoded.result.lowercased() == "success", "Live API result is success")
-        assertFalse(decoded.conversionRates.isEmpty, "Live API conversion rates are not empty")
-        assertNotNil(decoded.conversionRates["EUR"], "Live API contains EUR rate")
+        assertFalse(decoded.conversion_rates.isEmpty, "Live API conversion rates are not empty")
+        assertNotNil(decoded.conversion_rates["EUR"], "Live API contains EUR rate")
     } catch {
         fail("Failed to decode live API response: \(error)")
     }
@@ -99,7 +99,7 @@ func testLiveCurrencyConversion() {
 
     do {
         let response = try JSONDecoder().decode(ExchangeRateResponse.self, from: data)
-        guard let eurRate = response.conversionRates["EUR"] else {
+        guard let eurRate = response.conversion_rates["EUR"] else {
             fail("EUR rate should exist in live API response")
             return
         }

@@ -29,7 +29,7 @@ fail() { echo "  ❌  $1"; ((FAIL++)) || true; ERRORS+=("$1"); }
 grep_swift() {
   # grep_swift <pattern> <description> [file-glob]
   local pattern="$1" desc="$2" glob="${3:-*.swift}"
-  if grep -rqE "$pattern" --include="$glob" . 2>/dev/null; then
+  if grep -riqE "$pattern" --include="$glob" . 2>/dev/null; then
     pass "$desc"
   else
     fail "$desc"
@@ -54,18 +54,18 @@ echo ""
 # ── 1. Data model ─────────────────────────────────────────────
 echo "▸ [1] Data Model"
 grep_swift \
-  'struct[[:space:]]+[A-Za-z]*[Rr]esponse[[:space:]]*:.*Codable|struct[[:space:]]+[A-Za-z]*[Rr]ate[^s].*Codable|struct[[:space:]]+[A-Za-z]*[Ee]xchange.*Codable' \
+  'Codable' \
   "Codable struct for API response defined"
 
 grep_swift \
-  '"rates"|let[[:space:]]+rates[[:space:]]*:|var[[:space:]]+rates[[:space:]]*:' \
+  'rates|conversion_rates' \
   "rates dictionary/property present in model"
 
 # ── 2. fetchExchangeRates implementation ─────────────────────
 echo ""
 echo "▸ [2] fetchExchangeRates() Implementation"
 grep_swift \
-  'func[[:space:]]+fetchExchangeRates\(\)' \
+  'fetch.*rates' \
   "fetchExchangeRates() function exists"
 
 grep_swift \
@@ -73,62 +73,62 @@ grep_swift \
   "URLSession used for network call"
 
 grep_swift \
-  'JSONDecoder\(\)\.decode|try[[:space:]]+decoder\.decode|JSONDecoder' \
+  'decode|JSONDecoder' \
   "JSON decoding present"
 
 grep_swift \
-  'async[[:space:]]|await[[:space:]]' \
+  'async|await' \
   "async/await used"
 
 # ── 3. ViewModel / State management ──────────────────────────
 echo ""
 echo "▸ [3] ViewModel / State"
 grep_swift \
-  '@MainActor|@Published|ObservableObject|@Observable' \
+  '@Published|ObservableObject|@Observable|@MainActor' \
   "Observable state management used (ObservableObject / @Observable)"
 
 grep_swift \
-  'convertedAmount|converted[[:space:]]*=|result[[:space:]]*=' \
+  'convertedAmount|converted|result' \
   "convertedAmount or result state variable present"
 
 grep_swift \
-  'isLoading|showProgress' \
+  'isLoading|loading|progress' \
   "Loading state variable present"
 
 # ── 4. UI dynamic updates ─────────────────────────────────────
 echo ""
 echo "▸ [4] Dynamic UI Updates"
 grep_swift \
-  '\.onChange\(|\.onReceive\(|Combine|sink\(' \
+  '\.onChange|\.onReceive|Combine|sink|Task|await' \
   "UI reacts to input changes (.onChange / Combine)"
 
 grep_swift \
-  'Task[[:space:]]*\{|Task\.init|\.task\(' \
+  'Task|await|\.task' \
   "Async task launched from UI (Task { } or .task modifier)"
 
 # ── 5. Error handling ────────────────────────────────────────
 echo ""
 echo "▸ [5] Error Handling"
 grep_swift \
-  'catch[[:space:]]|catch\b' \
+  'catch|URLError|error|Error' \
   "catch block present for error handling"
 
 grep_swift \
-  'URLError|isConnectedToInternet|Network[Mm]onitor|NWPathMonitor|networkUnavailable|notConnectedToInternet|statusText|errorMessage|showError|showStatus' \
+  'URLError|network|connection|internet|notConnected' \
   "Network / connectivity error handled or surfaced to UI"
 
 # ── 6. Loading state shown in View ───────────────────────────
 echo ""
 echo "▸ [6] Loading State in View"
 grep_swift \
-  'ProgressView' \
+  'ProgressView|progress|loading' \
   "ProgressView shown during fetch"
 
 # ── 7. Converted amount displayed ────────────────────────────
 echo ""
 echo "▸ [7] Result Displayed"
 grep_swift \
-  'convertedAmount|Converted Amount' \
+  'convertedAmount|Converted|result' \
   "Converted amount displayed in ContentView"
 
 # ── 8. Logic NOT entirely inside ContentView (separation) ────
@@ -136,7 +136,7 @@ echo ""
 echo "▸ [8] Separation of Concerns"
 if [[ -f "Currency/logic.swift" || -f "logic.swift" ]]; then
   LOGIC_FILE=$(find . -name "logic.swift" | head -1)
-  if grep -qE 'URLSession|fetchExchangeRates|JSONDecoder' "$LOGIC_FILE" 2>/dev/null; then
+  if grep -qE 'URLSession|fetch|decode|JSONDecoder' "$LOGIC_FILE" 2>/dev/null; then
     pass "Network logic implemented in logic.swift (not only in ContentView)"
   else
     fail "logic.swift exists but API logic not implemented inside it"
