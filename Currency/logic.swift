@@ -10,7 +10,7 @@ import Foundation
 struct ExchangeRateResponse: Codable {
     let result: String
     let base_code: String
-    let conversion_rates: [String: Double]
+    let rates: [String: Double]
 }
 
 final class CurrencyViewModel: ObservableObject {
@@ -41,7 +41,7 @@ final class CurrencyViewModel: ObservableObject {
             }
 
             let apiResponse = try JSONDecoder().decode(ExchangeRateResponse.self, from: data)
-            rates = apiResponse.conversion_rates
+            rates = apiResponse.rates
             fromCurrency = apiResponse.base_code
             convertCurrentAmount()
         } catch {
