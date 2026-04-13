@@ -1,0 +1,13 @@
+# List files that must not be modified for submission checks.
+# Protected files are restored from main before each test run.
+
+samples/expected_model.swift.sample
+
+tests/main.swift
+tests/currencylogictests.swift
+tests/run_tests.sh
+
+.github/workflows/fork-ci.yml
+.github/workflows/pr-checks.yml
+.github/workflows/pr-grader.yml
+.readonly-files
