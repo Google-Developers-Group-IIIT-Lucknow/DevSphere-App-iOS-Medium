@@ -26,19 +26,24 @@ final class CurrencyViewModel: ObservableObject {
 
     func fetchExchangeRates(base: String = "USD") async {
         let normalizedBase = base.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
-        guard let url = URL(string: "https://open.er-api.com/v6/latest/\(normalizedBase)") else {
+        guard !normalizedBase.isEmpty,
+              let url = URL(string: "https://open.er-api.com/v6/latest/\(normalizedBase)") else {
             errorMessage = "Invalid base currency."
             rates = [:]
             convertedAmount = 0.0
             return
         }
+
         isLoading = true
         errorMessage = nil
+
         defer {
             isLoading = false
         }
+
         do {
             let (data, response) = try await URLSession.shared.data(from: url)
+
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode) else {
                 errorMessage = "Unable to load exchange rates right now."
@@ -46,23 +51,34 @@ final class CurrencyViewModel: ObservableObject {
                 convertedAmount = 0.0
                 return
             }
+
             let decodedResponse = try JSONDecoder().decode(ExchangeRateResponse.self, from: data)
+
             guard decodedResponse.result.lowercased() == "success" else {
                 errorMessage = "Exchange rate service returned an invalid response."
                 rates = [:]
                 convertedAmount = 0.0
                 return
             }
+
             var fetchedRates = decodedResponse.rates
             fetchedRates[decodedResponse.base_code.uppercased()] = 1.0
+
             rates = fetchedRates
             fromCurrency = fromCurrency.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
             toCurrency = toCurrency.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
             convertCurrentAmount()
-        }catch {
+        } catch let urlError as URLError {
+            rates = [:]
+            convertedAmount = 0.0
+            errorMessage = "Network error: \(urlError.localizedDescription)"
+        } catch {
+            rates = [:]
+            convertedAmount = 0.0
             errorMessage = "Failed to decode exchange rates."
         }
     }
+
     func convertCurrentAmount() {
         let trimmedAmount = amount.trimmingCharacters(in: .whitespacesAndNewlines)
         let sourceCurrency = fromCurrency.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
@@ -75,6 +91,7 @@ final class CurrencyViewModel: ObservableObject {
             convertedAmount = 0.0
             return
         }
+
         guard let fromRate = rates[sourceCurrency],
               let toRate = rates[destinationCurrency],
               fromRate > 0,
@@ -82,6 +99,7 @@ final class CurrencyViewModel: ObservableObject {
             convertedAmount = 0.0
             return
         }
+
         convertedAmount = inputAmount * (toRate / fromRate)
     }
 }
